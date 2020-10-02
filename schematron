@@ -1,0 +1,56 @@
+#!/bin/sh
+
+if [ $# -ne 4 ]; then
+        echo "schematron <trunk> <schematron file> <input XML> <output TXT>"
+	exit 1
+fi
+
+TRUNK="${1}"
+SCHEMA="${2}"
+INPUT="${3}"
+OUTPUT="${4}"
+SCHTRN_DIR="xslt1"
+VALIDATOR=schematron.xsl
+
+RETVAL=1
+COMPILER=${SCHTRN_DIR}/iso_schematron_skeleton_for_xslt1.xsl
+
+
+[ -f ${VALIDATOR} ] && rm -f "${VALIDATOR}"
+
+trap 'rm -f "${VALIDATOR}"' EXIT INT
+
+if [ ! -e "${SCHEMA}" ]
+then
+    echo "ERROR: Could not find schema file [${SCHEMA}]";
+    exit 1;
+fi
+
+if [ ! -e "${INPUT}" ]
+then
+    echo "ERROR: Could not find input file [${INPUT}]";
+    exit 1;
+fi
+
+if [ -e ${OUTPUT} ]
+then
+    rm ${OUTPUT};
+fi
+
+echo "Schematron Validation:";
+
+if ! xsltproc -o ${VALIDATOR} ${COMPILER} ${SCHEMA}
+then
+    RETVAL=$?
+    echo "ERROR [${RETVAL}]: Could not compile validating stylesheet.  Is it an ISO Schematron schema?";
+    echo "";
+    exit ${RETVAL};
+fi
+
+if ! xsltproc -o ${OUTPUT} ${VALIDATOR} ${INPUT}
+then
+    RETVAL=$?
+    echo "ERROR [${RETVAL}]: Could not perform validation.  Could not determine whether or not XML is valid.";
+    echo "";
+    exit ${RETVAL};
+fi

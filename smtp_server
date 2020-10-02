@@ -1,0 +1,2 @@
+#!/bin/bash
+sudo python -m smtpd -d -c DebuggingServer -n localhost:25
